@@ -1,6 +1,7 @@
 import numpy as np
 from helpers.imageFilter import ImageManager
 import cv2
+from math import atan2, pi
 
 
 class BasicJoint():
@@ -46,7 +47,19 @@ class MiddleJoint(BasicJoint):
             previous_joint ([BasicJoint]): []
             next_joint ([BasicJoint]): []
         """
-        pass
+
+        point_prev = np.array([previous_joint.x, previous_joint.y])
+        point_now = np.array([self.x, self.y])
+        point_next = np.array([next_joint.x, next_joint.y])
+
+        now_prev = point_prev - point_now
+        now_next = point_next - point_now
+
+        cosine_angle = np.dot(now_prev, now_next) / (np.linalg.norm(now_prev) *
+                                                     np.linalg.norm(now_next))
+        angle = np.arccos(cosine_angle)
+
+        self.angle = np.degrees(angle)
 
     def get_coordinates_and_angle(self):
         """AI is creating summary for get_coordinates_and_angle
@@ -89,3 +102,26 @@ class Hand(ImageManager):
         for joint in self.joints:
             cv2.circle(self.frame, (int(joint.x), int(joint.y)), 5,
                        (0, 255, 100), 2)
+
+    def get_joint_coordinates_and_angles(self):
+
+        all_x = []
+        all_y = []
+        all_angle = []
+
+        basic_joints = [0, len(self.joints) - 1]
+
+        for i, joint in enumerate(self.joints):
+
+            if i in basic_joints:
+                angle = 0
+                x, y = joint.get_coordinates()
+            else:
+                joint.calculate_angle(self.joints[i - 1], self.joints[i + 1])
+                x, y, angle = joint.get_coordinates_and_angle()
+
+            all_x.append(x)
+            all_y.append(y)
+            all_angle.append(angle)
+
+        return all_x, all_y, all_angle
