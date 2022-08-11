@@ -18,7 +18,7 @@ while True:
     frame = cv2.resize(frame, (1280, 720))
 
     cv2.imshow("frame", frame)
-    key = cv2.waitKey(100)
+    key = cv2.waitKey(1)
 
     mask = hsv_filter.create_filtered_image(frame)
 
